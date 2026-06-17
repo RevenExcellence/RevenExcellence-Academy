@@ -47,6 +47,33 @@
   .bar-pct{font-family:var(--display);font-size:14px;color:var(--blue);min-width:48px;text-align:right;}
   .cert-cta{display:none;background:var(--green);color:#06231b;border:none;border-radius:8px;padding:10px 16px;font-family:var(--display);text-transform:uppercase;letter-spacing:.03em;font-size:12px;cursor:pointer;white-space:nowrap;transition:transform .15s,box-shadow .15s;}
   .cert-cta:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px rgba(0,204,155,.7);}
+  .quiz-cta{display:none;background:#f0b429;color:#3a2c00;border:none;border-radius:8px;padding:10px 16px;font-family:var(--display);text-transform:uppercase;letter-spacing:.03em;font-size:12px;cursor:pointer;white-space:nowrap;transition:transform .15s,box-shadow .15s;}
+  .quiz-cta:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px rgba(240,180,41,.7);}
+  .quiz-cta.on{display:inline-block;animation:pop .5s ease;}
+  #quizView{display:none;position:fixed;inset:0;z-index:240;background:linear-gradient(155deg,var(--blue) 0%,var(--blue-2) 100%);overflow-y:auto;padding:40px 16px;}
+  #quizView.show{display:block;}
+  .quiz-card{background:#fff;max-width:760px;margin:0 auto;border-radius:16px;border-top:5px solid var(--green);box-shadow:0 30px 80px -30px rgba(0,0,0,.6);padding:32px 32px 26px;}
+  .quiz-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+  .quiz-head h2{font-family:var(--display);text-transform:none;letter-spacing:0;color:var(--blue);font-size:24px;margin:0;}
+  .quiz-part{font-family:var(--display);font-size:12px;color:var(--green-2);background:#eafaf5;border:1px solid #b9eede;padding:5px 12px;border-radius:20px;}
+  .quiz-sub{color:#5a6b85;font-size:14px;margin:4px 0 20px;line-height:1.5;}
+  .q-block{border:1px solid var(--line);border-radius:12px;padding:18px 18px 9px;margin-bottom:15px;}
+  .q-text{font-weight:700;color:var(--ink);margin:0 0 12px;font-size:15.5px;line-height:1.45;}
+  .q-text .qn{display:inline-block;background:var(--blue);color:#fff;font-family:var(--display);font-size:12px;border-radius:6px;padding:2px 9px;margin-right:9px;}
+  .opt{display:block;width:100%;text-align:left;background:#fbfcfe;border:1.5px solid var(--line);border-radius:9px;padding:12px 14px;margin-bottom:9px;font-family:var(--text);font-size:14.5px;color:var(--ink);cursor:pointer;transition:border-color .12s,background .12s;}
+  .opt:hover{border-color:var(--blue);}
+  .opt.sel{border-color:var(--blue);background:#eef3fb;box-shadow:inset 0 0 0 1px var(--blue);}
+  .opt.wrong{border-color:#e23b3b !important;background:#fdeaea !important;color:#a11212;box-shadow:inset 0 0 0 1px #e23b3b;}
+  .quiz-foot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:6px;}
+  .quiz-close{font-size:13px;color:#5a6b85;text-decoration:none;}
+  .quiz-close:hover{text-decoration:underline;}
+  .quiz-msg{font-size:13.5px;font-weight:600;flex:1;text-align:right;min-height:18px;}
+  .quiz-msg.bad{color:#c0392b;}
+  .quiz-btn{background:var(--blue);color:#fff;border:none;border-radius:9px;padding:13px 22px;font-family:var(--display);text-transform:uppercase;letter-spacing:.04em;font-size:13px;cursor:pointer;transition:background .15s;white-space:nowrap;}
+  .quiz-btn:hover{background:var(--blue-2);}
+  .quiz-btn.retry{background:#e23b3b;}
+  .quiz-btn.retry:hover{background:#c0392b;}
+  .quiz-btn.go{background:var(--green);color:#06231b;}
   .cert-cta.on{display:inline-block;animation:pop .5s ease;}
   @keyframes pop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
   .rail .reset{font-size:11px;color:var(--muted);text-decoration:none;white-space:nowrap;}
@@ -237,6 +264,7 @@
     <div class="bar-shell"><div class="bar-fill" id="bar"></div></div>
     <span class="bar-pct" id="pct">0%</span>
     <span class="who"><b id="cnt">0</b>/10 watched &middot; <b id="who-name">—</b></span>
+    <button class="quiz-cta" id="quizBtn">📝 Start Final Assessment</button>
     <button class="cert-cta" id="certBtn">🎓 Download Certificate</button>
     <a href="#" class="reset" id="resetLink">Reset</a>
   </div>
@@ -264,7 +292,7 @@
 
   <div class="intro">
     <div class="mark">i</div>
-    <p><strong>How it works.</strong> Click any module's thumbnail to play the video right here on the page. When you've finished watching, tick <strong>"Mark as watched"</strong> on that card — your progress bar at the top advances by 10% with each one. Reach 100% and the <strong>Download Certificate</strong> button unlocks, generating a Certificate of Completion personalized with your name, title, and completion date. Your progress is saved on this device, so you can stop and return anytime.</p>
+    <p><strong>How it works.</strong> Click any module's thumbnail to play the video right here on the page. When you've finished watching, tick <strong>"Mark as watched"</strong> on that card — your progress bar at the top advances by 10% with each one. Reach 100% and a short <strong>Final Assessment</strong> unlocks &mdash; ten quick questions drawn from the videos. Pass it and your <strong>Certificate of Completion</strong> is generated, personalized with your name, title, and completion date. One wrong answer restarts the assessment, but you can retake it instantly, as many times as you need. Your progress is saved on this device, so you can stop and return anytime.</p>
   </div>
 
   <div id="sections"></div>
@@ -281,6 +309,20 @@
     <span class="foot-meta">Revenex RCM · RevenExcellence Academy</span>
   </div>
 </footer>
+</div>
+
+<!-- ===== FINAL ASSESSMENT (QUIZ) ===== -->
+<div id="quizView">
+  <div class="quiz-card">
+    <div class="quiz-head"><h2>Final Assessment</h2><span class="quiz-part" id="qPart">Part 1 of 4</span></div>
+    <p class="quiz-sub">Answer every question correctly to unlock your Certificate of Completion. Questions come in groups. <strong>One wrong answer restarts the entire assessment</strong> &mdash; but you can retake it instantly, as many times as you need.</p>
+    <div id="qBody"></div>
+    <div class="quiz-foot">
+      <a href="#" id="qClose" class="quiz-close">&larr; Back to modules</a>
+      <span class="quiz-msg" id="qMsg"></span>
+      <button class="quiz-btn" id="qSubmit" type="button">Submit Answers</button>
+    </div>
+  </div>
 </div>
 
 <!-- ===== CERTIFICATE VIEW ===== -->
@@ -458,8 +500,17 @@ function updateProgress(){
   document.getElementById('pct').textContent=pct+'%';
   var cn=document.getElementById('cnt'); if(cn) cn.textContent=watched.size;
   var btn=document.getElementById('certBtn');
-  if(pct>=100){ btn.classList.add('on'); if(!S_get('revenex_done_date')) S_set('revenex_done_date', new Date().toISOString()); if(COMPLETION_FORM_URL && !S_get('revenex_submitted')){ S_set('revenex_submitted','1'); submitCompletion(); } }
-  else { btn.classList.remove('on'); }
+  var qbtn=document.getElementById('quizBtn');
+  var passed=!!S_get('revenex_quiz_passed');
+  if(pct>=100 && passed){
+    btn.classList.add('on'); if(qbtn) qbtn.classList.remove('on');
+    if(!S_get('revenex_done_date')) S_set('revenex_done_date', new Date().toISOString());
+    if(COMPLETION_FORM_URL && !S_get('revenex_submitted')){ S_set('revenex_submitted','1'); submitCompletion(); }
+  } else if(pct>=100){
+    if(qbtn) qbtn.classList.add('on'); btn.classList.remove('on');
+  } else {
+    btn.classList.remove('on'); if(qbtn) qbtn.classList.remove('on');
+  }
 }
 function persist(){ S_set('revenex_progress', JSON.stringify(Array.from(watched))); }
 function markWatched(id){
@@ -534,10 +585,111 @@ document.getElementById('certSubmit').addEventListener('click',submitCompletion)
 document.getElementById('resetLink').addEventListener('click',function(e){
   e.preventDefault();
   if(confirm('Reset your details and training progress on this device?')){
-    S_del('revenex_user'); S_del('revenex_progress'); S_del('revenex_done_date'); S_del('revenex_submitted');
+    S_del('revenex_user'); S_del('revenex_progress'); S_del('revenex_done_date'); S_del('revenex_submitted'); S_del('revenex_quiz_passed');
     location.reload();
   }
 });
+/* ---------------- FINAL ASSESSMENT (QUIZ) ---------------- */
+var QUIZ=[
+ {q:"A client calls upset about an error on their statement. What should you do first?",
+  o:["Explain why the error is not your department fault","Acknowledge their concern and listen fully before responding","Put them on hold until they calm down","Ask them to put the complaint in an email instead"],c:1},
+ {q:"What most reliably builds long-term customer satisfaction and retention?",
+  o:["Offering the lowest price every time","Consistently meeting and exceeding expectations","Keeping every call under two minutes","Avoiding difficult questions"],c:1},
+ {q:"The secret to outstanding customer service ultimately comes from:",
+  o:["Following a rigid script word-for-word","Genuinely caring about the person you are helping","Closing the call as fast as possible","Upselling on every interaction"],c:1},
+ {q:"A core habit of effective communication on a client call is to:",
+  o:["Fill every silence by talking more","Use clear, simple language and confirm the client understood","Use as much industry jargon as possible","Handle other tasks while the client talks"],c:1},
+ {q:"The 3-2-1 speaking technique is designed to help you:",
+  o:["Rate the customer mood","Structure your point so you stop rambling","Always end a call in three minutes","Memorize a sales script"],c:1},
+ {q:"Which combination most improves how clearly your message lands?",
+  o:["Speaking faster to save time","Awareness of your tone, pace, and body language","Avoiding eye contact to stay focused","Never pausing between sentences"],c:1},
+ {q:"A practical habit for clearer, more confident speaking is to:",
+  o:["Fill gaps with filler sounds like um and uh","Use deliberate pauses and control your pace","Speak in a flat monotone","Mumble so you sound relaxed"],c:1},
+ {q:"Active listening means:",
+  o:["Waiting for your turn to talk","Fully focusing on, understanding, and responding to the speaker","Doing other work while they speak","Interrupting to move things along"],c:1},
+ {q:"The professional way to answer a work phone call is to:",
+  o:["Answer with a casual Yeah","Greet the caller, give your name and company, and offer to help","Let it go to voicemail and call back later","Pick up and stay silent until they speak"],c:1},
+ {q:"To communicate with confidence at work, you should:",
+  o:["Speak only when spoken to","Be clear and concise, and listen actively","Use as many filler words as possible","Avoid asking clarifying questions"],c:1}
+];
+var BATCH=[[0,1,2],[3,4,5],[6,7,8],[9]];
+var qPart=0, qView=[];
+function qBuild(){
+  qView=QUIZ.map(function(Q){
+    var opts=Q.o.map(function(t,i){return {t:t,correct:(i===Q.c)};});
+    for(var k=opts.length-1;k>0;k--){var j=Math.floor(Math.random()*(k+1));var tmp=opts[k];opts[k]=opts[j];opts[j]=tmp;}
+    return {text:Q.q,opts:opts,sel:null};
+  });
+}
+function qRender(){
+  var ids=BATCH[qPart];
+  document.getElementById('qPart').textContent='Part '+(qPart+1)+' of '+BATCH.length;
+  var html='';
+  ids.forEach(function(qi){
+    var V=qView[qi];
+    html+='<div class="q-block"><p class="q-text"><span class="qn">Q'+(qi+1)+'</span>'+V.text+'</p>';
+    V.opts.forEach(function(op,oi){
+      html+='<button type="button" class="opt'+(V.sel===oi?' sel':'')+'" data-qi="'+qi+'" data-oi="'+oi+'">'+op.t+'</button>';
+    });
+    html+='</div>';
+  });
+  document.getElementById('qBody').innerHTML=html;
+  var msg=document.getElementById('qMsg'); msg.textContent=''; msg.className='quiz-msg';
+  var sb=document.getElementById('qSubmit');
+  sb.textContent=(qPart===BATCH.length-1?'Submit Final Answer':'Submit Answers');
+  sb.className='quiz-btn'; sb.onclick=qSubmit;
+  Array.prototype.forEach.call(document.querySelectorAll('#qBody .opt'),function(b){
+    b.addEventListener('click',function(){
+      var qi=+b.getAttribute('data-qi'), oi=+b.getAttribute('data-oi');
+      qView[qi].sel=oi;
+      Array.prototype.forEach.call(document.querySelectorAll('#qBody .opt[data-qi="'+qi+'"]'),function(x){ x.classList.remove('sel','wrong'); });
+      b.classList.add('sel');
+    });
+  });
+  var qv=document.getElementById('quizView'); if(qv) qv.scrollTop=0;
+}
+function qSubmit(){
+  var ids=BATCH[qPart], msg=document.getElementById('qMsg');
+  for(var n=0;n<ids.length;n++){ if(qView[ids[n]].sel===null){ msg.className='quiz-msg bad'; msg.textContent='Please answer all questions in this part.'; return; } }
+  var anyWrong=false;
+  ids.forEach(function(qi){
+    var V=qView[qi];
+    if(!V.opts[V.sel].correct){
+      anyWrong=true;
+      var btns=document.querySelectorAll('#qBody .opt[data-qi="'+qi+'"]');
+      btns[V.sel].classList.add('wrong');
+    }
+  });
+  if(anyWrong){
+    msg.className='quiz-msg bad'; msg.textContent='Incorrect — the assessment restarts from the beginning.';
+    var sb=document.getElementById('qSubmit'); sb.textContent='Restart Assessment'; sb.className='quiz-btn retry'; sb.onclick=qRestart;
+    return;
+  }
+  if(qPart<BATCH.length-1){ qPart++; qRender(); }
+  else { qPass(); }
+}
+function qRestart(){ qPart=0; qBuild(); qRender(); }
+function qPass(){
+  S_set('revenex_quiz_passed','1');
+  if(!S_get('revenex_done_date')) S_set('revenex_done_date', new Date().toISOString());
+  if(COMPLETION_FORM_URL && !S_get('revenex_submitted')){ S_set('revenex_submitted','1'); submitCompletion(); }
+  document.getElementById('qPart').textContent='Complete';
+  document.getElementById('qMsg').textContent='';
+  document.getElementById('qBody').innerHTML='<div style="text-align:center;padding:26px 8px;"><div style="font-size:46px;line-height:1;margin-bottom:10px;">&#127881;</div><h2 style="font-family:var(--display);color:var(--green-2);margin:0 0 8px;letter-spacing:0;">Assessment Passed</h2><p style="color:#5a6b85;font-size:15px;margin:0;">You answered all ten questions correctly. Your Certificate of Completion is now unlocked.</p></div>';
+  var sb=document.getElementById('qSubmit'); sb.textContent='🎓 Get My Certificate'; sb.className='quiz-btn go'; sb.onclick=function(){ qClose(); updateProgress(); openCert(); };
+  updateProgress();
+}
+function qOpen(){
+  if(S_get('revenex_quiz_passed')){ openCert(); return; }
+  qPart=0; qBuild(); qRender();
+  document.getElementById('quizView').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function qClose(){ document.getElementById('quizView').classList.remove('show'); document.body.style.overflow=''; }
+document.getElementById('quizBtn').addEventListener('click',qOpen);
+document.getElementById('qClose').addEventListener('click',function(e){ e.preventDefault(); qClose(); });
+document.getElementById('qSubmit').onclick=qSubmit;
+
 initGate();
 </script>
 </body>
