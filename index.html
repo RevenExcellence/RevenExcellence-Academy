@@ -530,6 +530,7 @@ body{font-family:'Segoe UI',Calibri,Arial,sans-serif;background:#f4f6f9;color:#1
             <p>Complete the official Final Assessment to unlock your Certificate of Completion.</p>
             <button class="act-btn ghost" id="quizBtn">📝 Start Final Assessment</button>
             <button class="act-btn" id="certBtn" disabled>🎓 Get My Certificate</button>
+            <button class="act-btn ghost" id="log-m1" style="display:none;" onclick="submitCompletion('m1')">📋 Submit My Completion</button>
             <p class="assess-hint" id="assess-hint">The assessment opens in a new tab — sign in with your work account. Once you've launched it, your certificate unlocks here.</p>
           </div>
         </div>
@@ -817,6 +818,7 @@ body{font-family:'Segoe UI',Calibri,Arial,sans-serif;background:#f4f6f9;color:#1
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 Get My Certificate
               </button>
+              <button class="act-btn ghost" id="log-m2" style="display:none;" onclick="submitCompletion('m2')">&#128203; Submit My Completion</button>
             </div>
           </div>
 
@@ -859,6 +861,86 @@ function thumbSrc(id){ return THUMBS[id] || ('https://i.ytimg.com/vi/'+id+'/hqde
 
 var ASSESSMENT_URL = "https://forms.cloud.microsoft/r/FyJkaV30tZ";
 
+/* ══════════════════════════════════════════
+   COMPLETION LOG  (Microsoft Forms)
+   Paste the PRE-FILLED form URL between the quotes below.
+   In Forms: Collect responses > Get pre-filled URL, then type these exact
+   strings as the answers: __NAME__ __TITLE__ __EMAIL__ __MODULE__ __SCORE__
+   __PCT__ __STARTED__ __FINISHED__ __ELAPSED__ __ATTEMPTS__
+   Leave empty ("") to disable submission entirely.
+══════════════════════════════════════════ */
+var COMPLETION_FORM_URL = "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=yAd7eXDsKEaAxgI9_Rc8MYLTYe893FxEsowbFrXCq2BUM0RVVEJUSDNZSExUVjlEUjJVTVhaQlFYQi4u&re161e49e3d3345989cb5f2da0425413c=__NAME__&r0a5f9678ee7b47a6bec1c86ca0d0218c=__TITLE__&red3989d15b894e3ca0ff538043d3c2e1=__EMAIL__&r68517ba168e64663b750dada4fcdc223=__MODULE__&rc7379266c1444ef18aaa7b2f9ccda1c0=__SCORE__&r9563af7e1bd54f37973eed55c3e5a397=__PCT__&r77ba2339f03d438586170c7e1a9831a5=__STARTED__&r636bad50333f4728827340f91d2cdbf9=__FINISHED__&r1ef919f5ff824199ae5a627ff4ba9577=__ELAPSED__&re4d228ca9bcf4443b6d11136d4ef5925=__ATTEMPTS__";
+
+function fmtElapsed(ms){
+  if(!ms || ms<0) return 'n/a';
+  var m=Math.round(ms/60000), h=Math.floor(m/60), r=m%60;
+  if(h>0) return h+'h '+r+'m';
+  return m+'m';
+}
+function startedAt(){ return S_get('revenex_started') || ''; }
+
+/* Everything the completion log records for one module */
+function completionRecord(mod){
+  var u=currentUser(); if(!u) return null;
+  var st=startedAt();
+  var fin, score, pct, attempts;
+  if(mod==='m1'){
+    fin = S_get('revenex_m1_finished') || new Date().toISOString();
+    score = 'see assessment form';        /* M1 is graded inside Forms, not here */
+    pct   = '';
+    attempts = '1';
+  } else {
+    fin = S_get('revenex_m2_finished') || new Date().toISOString();
+    score = (m2.score||0)+'/6';
+    pct   = String(Math.round(((m2.score||0)/6)*100));
+    attempts = String(m2.attempts||1);
+  }
+  /* Module 2 is timed from when the learner actually started it, not from
+     their first ever sign-in — otherwise it would absorb all of Module 1. */
+  var from = (mod==='m2') ? (S_get('revenex_m2_started') || S_get('revenex_m1_finished') || st) : st;
+  var ms = (from && fin) ? (new Date(fin) - new Date(from)) : 0;
+  return {
+    moduleStart: from,
+    name:u.name, title:u.title, email:u.email,
+    module: mod==='m1' ? 'Module 1 - Client Communication & Customer Service Excellence'
+                       : 'Module 2 - Speaking with Confidence',
+    score:score, pct:pct,
+    started:from, finished:fin,
+    elapsed:fmtElapsed(ms), attempts:attempts
+  };
+}
+
+function buildFormUrl(mod){
+  var r=completionRecord(mod);
+  if(!r || !COMPLETION_FORM_URL) return null;
+  var map={__NAME__:r.name,__TITLE__:r.title,__EMAIL__:r.email,__MODULE__:r.module,
+           __SCORE__:r.score,__PCT__:r.pct,__STARTED__:r.started,__FINISHED__:r.finished,
+           __ELAPSED__:r.elapsed,__ATTEMPTS__:r.attempts};
+  var url=COMPLETION_FORM_URL;
+  for(var k in map){ url=url.split(k).join(encodeURIComponent(map[k]||'')); }
+  return url;
+}
+
+function submitCompletion(mod){
+  var url=buildFormUrl(mod);
+  if(!url){ alert('Completion logging is not configured yet.'); return; }
+  window.open(url,'_blank','noopener');
+  S_set('revenex_logged_'+mod,'1');
+  refreshLogButtons();
+}
+
+function refreshLogButtons(){
+  ['m1','m2'].forEach(function(mod){
+    var b=document.getElementById('log-'+mod);
+    if(!b) return;
+    b.style.display = COMPLETION_FORM_URL ? 'inline-flex' : 'none';
+    if(S_get('revenex_logged_'+mod)){
+      b.textContent='\u2713 Completion Submitted';
+      b.disabled=true;
+    }
+  });
+}
+
 /* ══ SAFE STORAGE ══ */
 var mem = {};
 function S_get(k){ try{ return localStorage.getItem(k); }catch(e){ return mem[k]||null; } }
@@ -872,8 +954,8 @@ var watched = new Set();
 var M2_IDS = ['eIho2S0ZahI','5HKVPQOaT7c','BpPf2BzY1oE'];
 var m2 = (function(){
   try{ var d=JSON.parse(S_get('revenex_m2')||'{}');
-    return {videos:d.videos||{}, mcq:d.mcq||{}, passed:!!d.passed, score:d.score||0};
-  }catch(e){ return {videos:{},mcq:{},passed:false,score:0}; }
+    return {videos:d.videos||{}, mcq:d.mcq||{}, passed:!!d.passed, score:d.score||0, attempts:d.attempts||0};
+  }catch(e){ return {videos:{},mcq:{},passed:false,score:0,attempts:0}; }
 })();
 function saveM2(){ S_set('revenex_m2', JSON.stringify(m2)); }
 
@@ -992,6 +1074,7 @@ function updateProgress(){
 ══════════════════════════════════════════ */
 function markM2(id){
   if(m2.videos[id]) return;
+  if(!S_get('revenex_m2_started')) S_set('revenex_m2_started', new Date().toISOString());
   m2.videos[id]=true; saveM2();
   var card=document.getElementById('card_'+id); if(card) card.classList.add('done');
   var chk=document.getElementById('chk_'+id); if(chk) chk.checked=true;
@@ -1128,6 +1211,7 @@ function lockMCQ(block){
 function submitAssessment(){
   var qs=document.querySelectorAll('#asmt-qs .aq');
   var answered=0, score=0;
+  m2.attempts=(m2.attempts||0)+1;
   qs.forEach(function(q){
     var s=q.querySelector('.aopt.sel');
     if(!s) return;
@@ -1155,7 +1239,9 @@ function submitAssessment(){
     document.getElementById('asmt-res-p').textContent="Well done. You've earned your Speaking with Confidence certificate.";
     document.getElementById('asmt-retry').style.display='none';
     document.getElementById('asmt-go').style.display='none';
-    m2.passed=true; m2.score=score; saveM2(); refreshM2();
+    m2.passed=true; m2.score=score; saveM2();
+    if(!S_get('revenex_m2_finished')) S_set('revenex_m2_finished', new Date().toISOString());
+    refreshM2(); refreshLogButtons();
     setTimeout(function(){ document.getElementById('m2-done').scrollIntoView({behavior:'smooth',block:'center'}); },600);
   } else {
     document.getElementById('asmt-res-p').textContent="You need 4 to pass. Review the answers above, then take another run at it. There's no limit on attempts.";
@@ -1179,8 +1265,12 @@ function retryAssessment(){
    MODULE TILES
 ══════════════════════════════════════════ */
 function toggleModule(n){
-  document.getElementById('m'+n+'-body').classList.toggle('open');
+  var body=document.getElementById('m'+n+'-body');
+  body.classList.toggle('open');
   document.getElementById('m'+n+'-arrow').classList.toggle('open');
+  if(n===2 && body.classList.contains('open') && m1Complete() && !S_get('revenex_m2_started')){
+    S_set('revenex_m2_started', new Date().toISOString());
+  }
 }
 function openModule(n){
   document.getElementById('m'+n+'-body').classList.add('open');
@@ -1286,6 +1376,7 @@ function showSite(u){
   document.getElementById('stat-runtime').textContent='≈'+(tot+21);
 
   wireM2Checkboxes();
+  refreshLogButtons();
   renderDashboard();
   updateProgress();
   refreshM2();
@@ -1294,7 +1385,10 @@ function showSite(u){
 
 function initGate(){
   var stored=currentUser();
-  if(stored && stored.name){ showSite(stored); return; }
+  if(stored && stored.name){
+    if(!S_get('revenex_started')) S_set('revenex_started', S_get('revenex_done_date') || new Date().toISOString());
+    showSite(stored); return;
+  }
   var go=document.getElementById('g-go'), err=document.getElementById('g-err');
   function submit(){
     var name=document.getElementById('g-name').value.trim();
@@ -1304,6 +1398,7 @@ function initGate(){
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent='Please enter a valid email address.'; return; }
     var u={name:name,title:title,email:email};
     S_set('revenex_user', JSON.stringify(u));
+    if(!S_get('revenex_started')) S_set('revenex_started', new Date().toISOString());
     showSite(u);
   }
   go.addEventListener('click',submit);
@@ -1316,13 +1411,17 @@ document.getElementById('quizBtn').addEventListener('click',function(){
   if(!ASSESSMENT_URL) return;
   window.open(ASSESSMENT_URL,'_blank','noopener');
   S_set('revenex_quiz_passed','1');
+  if(!S_get('revenex_m1_finished')) S_set('revenex_m1_finished', new Date().toISOString());
   updateProgress();
+  refreshLogButtons();
 });
 document.getElementById('certBtn').addEventListener('click',function(){ openCert('m1'); });
 document.getElementById('resetLink').addEventListener('click',function(e){
   e.preventDefault();
   if(confirm('Reset your details and all training progress on this device?')){
-    ['revenex_user','revenex_progress','revenex_done_date','revenex_quiz_passed','revenex_m2','revenex_certs'].forEach(S_del);
+    ['revenex_user','revenex_progress','revenex_done_date','revenex_quiz_passed','revenex_m2','revenex_certs',
+     'revenex_started','revenex_m1_finished','revenex_m2_started','revenex_m2_finished',
+     'revenex_logged_m1','revenex_logged_m2'].forEach(S_del);
     location.reload();
   }
 });
