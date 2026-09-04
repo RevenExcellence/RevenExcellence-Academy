@@ -885,7 +885,7 @@ function completionRecord(mod){
   var st=startedAt();
   var fin, score, pct, attempts;
   if(mod==='m1'){
-    fin = S_get('revenex_m1_finished') || new Date().toISOString();
+    fin = S_get('revenex_m1_finished') || S_get('revenex_done_date') || new Date().toISOString();
     score = 'see assessment form';        /* M1 is graded inside Forms, not here */
     pct   = '';
     attempts = '1';
@@ -899,14 +899,15 @@ function completionRecord(mod){
      their first ever sign-in — otherwise it would absorb all of Module 1. */
   var from = (mod==='m2') ? (S_get('revenex_m2_started') || S_get('revenex_m1_finished') || st) : st;
   var ms = (from && fin) ? (new Date(fin) - new Date(from)) : 0;
+  var elapsedText = from ? fmtElapsed(ms) : 'not recorded';
   return {
     moduleStart: from,
     name:u.name, title:u.title, email:u.email,
     module: mod==='m1' ? 'Module 1 - Client Communication & Customer Service Excellence'
                        : 'Module 2 - Speaking with Confidence',
     score:score, pct:pct,
-    started:from, finished:fin,
-    elapsed:fmtElapsed(ms), attempts:attempts
+    started:from||'', finished:fin,
+    elapsed:elapsedText, attempts:attempts
   };
 }
 
@@ -1386,7 +1387,17 @@ function showSite(u){
 function initGate(){
   var stored=currentUser();
   if(stored && stored.name){
-    if(!S_get('revenex_started')) S_set('revenex_started', S_get('revenex_done_date') || new Date().toISOString());
+    if(!S_get('revenex_started')){
+      var prior=S_get('revenex_done_date');
+      if(prior){
+        /* Finished Module 1 before completion tracking shipped. Keep their real
+           completion date and report the duration as unknown — never invent one. */
+        S_set('revenex_pre_tracking','1');
+        if(!S_get('revenex_m1_finished')) S_set('revenex_m1_finished', prior);
+      } else {
+        S_set('revenex_started', new Date().toISOString());
+      }
+    }
     showSite(stored); return;
   }
   var go=document.getElementById('g-go'), err=document.getElementById('g-err');
@@ -1421,7 +1432,7 @@ document.getElementById('resetLink').addEventListener('click',function(e){
   if(confirm('Reset your details and all training progress on this device?')){
     ['revenex_user','revenex_progress','revenex_done_date','revenex_quiz_passed','revenex_m2','revenex_certs',
      'revenex_started','revenex_m1_finished','revenex_m2_started','revenex_m2_finished',
-     'revenex_logged_m1','revenex_logged_m2'].forEach(S_del);
+     'revenex_logged_m1','revenex_logged_m2','revenex_pre_tracking'].forEach(S_del);
     location.reload();
   }
 });
