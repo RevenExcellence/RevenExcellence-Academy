@@ -539,9 +539,9 @@ body{font-family:'Segoe UI',Calibri,Arial,sans-serif;background:#f4f6f9;color:#1
         <div class="mbody-in">
           <div class="asmt-note" style="margin:26px 0 0;">
             <strong>How credit works.</strong> Click a thumbnail to play the video right here on the page.
-            Each one is marked complete automatically once you have watched <strong>80% of it</strong> —
+            Each one is marked complete automatically once you have watched it <strong>all the way through</strong> —
             the bar along the bottom of the player shows your progress. Skipping ahead with the scrubber
-            does not count, so just let it run. Your progress saves as you go.
+            does not count, so just let it run to the end. Your progress saves as you go.
           </div>
           <div class="yt-note" id="yt-note">
             <strong>Heads up:</strong> automatic tracking could not start — your network may be blocking
@@ -585,7 +585,7 @@ body{font-family:'Segoe UI',Calibri,Arial,sans-serif;background:#f4f6f9;color:#1
           <div class="m2-intro">
             <h4>Why Confidence Changes Every Call</h4>
             <p>You already know <em>what</em> to say — Module 1 covered that. This module is about <strong>how you carry it</strong>. When a payer rep hears calm certainty in your voice, the call moves faster. When a client sees you composed on a Teams call, they trust the work behind it. Confidence isn't something you're born with — it's a set of habits you can practice.</p>
-            <p>Work through each section in order. Each video is credited automatically once you have watched 80% of it — skipping ahead does not count. Answer the knowledge checks to unlock what comes next.</p>
+            <p>Work through each section in order. Each video is credited automatically once you have watched it all the way through — skipping ahead does not count. Answer the knowledge checks to unlock what comes next.</p>
           </div>
 
           <!-- Section 1 -->
@@ -1071,7 +1071,7 @@ function onPlayerState(e,id){
   if(e.data===YT.PlayerState.ENDED){
     var p=players[id];
     try{ var d=p.getDuration();
-         if(d>0 && (watchSec[id]||0) >= d*0.80 && (maxPos[id]||0) >= d*0.80) creditVideo(id);
+         if(d>0 && watchedInFull(id,d,true)) creditVideo(id);
     }catch(err){}
   }
 }
@@ -1083,6 +1083,23 @@ function beginSampling(id){
 }
 function stopSampling(id){
   if(pollIntervals[id]){ clearInterval(pollIntervals[id]); delete pollIntervals[id]; }
+}
+
+/* The whole video must be watched.
+
+   A literal 100.0% check would fail people who genuinely watched everything:
+   positions are sampled once a second, so each pause or buffer can lose up to
+   a second, and YouTube often stops a shade short of the reported duration.
+   So "in full" means 97% of the running time genuinely played AND the end
+   actually reached. Scrubbing satisfies the second but never the first;
+   replaying the opening satisfies the first but never the second. */
+var FULL_FRACTION   = 0.97;
+var END_TOLERANCE_S = 2;
+
+function watchedInFull(id,dur,ended){
+  var played=watchSec[id]||0, furthest=maxPos[id]||0;
+  return played >= dur*FULL_FRACTION &&
+         (ended || furthest >= dur-END_TOLERANCE_S);
 }
 
 function sample(id){
@@ -1106,14 +1123,7 @@ function sample(id){
   var pct=Math.round(((watchSec[id]||0)/dur)*100);
   setWatchUI(id,pct,false);
 
-  /* Two conditions, both required:
-       1. 80% of the running time genuinely played  — defeats scrubbing
-       2. the 80% mark actually reached             — defeats looping the intro
-     Scrubbing ahead satisfies (2) but never (1); replaying the first minute
-     over and over satisfies (1) but never (2). */
-  if((watchSec[id]||0) >= dur*0.80 && (maxPos[id]||0) >= dur*0.80){
-    stopSampling(id); creditVideo(id);
-  }
+  if(watchedInFull(id,dur,false)){ stopSampling(id); creditVideo(id); }
 }
 
 function buildSections(){
